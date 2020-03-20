@@ -1,0 +1,78 @@
+---
+title: "Zip Shape"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##load packages
+```{r}
+install.packages("sp")
+install.packages("rgdal")
+install.packages("sf")
+install.packages("tidycensus")
+install.packages("ggsn")
+install.packages("mapview")
+install.packages("leaflet")
+```
+
+```{r}
+library("tidyverse")
+library("rgdal")
+library(sf)
+setwd("~/repo")
+zippyPA <- st_read("acs2018_5yr_B01003_86000US15759/acs2018_5yr_B01003_86000US15759.shp")
+zippyPA <- rename(zippyPA, zipcode = name)
+zippyPA <- rename(zippyPA, pop = B01003001)
+zippyPA <- zippyPA %>% select(geoid, zipcode, pop, geometry)
+zippyPA.geo <- st_geometry(zippyPA)
+plot(zippyPA.geo)
+
+zippyNJ <- st_read("acs2018_5yr_B01003_86000US07630/acs2018_5yr_B01003_86000US07630.shp")
+zippyNJ <- rename(zippyNJ, zipcode = name)
+zippyNJ <- rename(zippyNJ, pop = B01003001)
+zippyNJ <- zippyNJ %>% select(geoid, zipcode, pop, geometry)
+zippyNJ.geo <- st_geometry(zippyNJ)
+
+zippyDE <- st_read("acs2018_5yr_B01003_86000US19977/acs2018_5yr_B01003_86000US19977.shp")
+zippyDE <- rename(zippyDE, zipcode = name)
+zippyDE <- rename(zippyDE, pop = B01003001)
+zippyDE <- zippyDE %>% select(geoid, zipcode, pop, geometry)
+zippyDE.geo <- st_geometry(zippyDE)
+plot(zippyDE.geo)
+```
+
+
+```{r}
+library(RColorBrewer)
+library(leaflet)
+zippyPA2 <- zippyPA[-1,]
+zippyPA2$pop <- as.numeric(as.character(zippyPA2$pop))
+prev_min <- min(zippyPA2$pop)
+prev_max <- max(zippyPA2$pop)
+
+my_theme <- function() {
+  theme_minimal() +                                  
+  theme(axis.line = element_blank(),                 
+        axis.text = element_blank(),                 
+        axis.title = element_blank(),
+        panel.grid = element_line(color = "white"),  
+        legend.key.size = unit(0.8, "cm"),          
+        legend.text = element_text(size = 16),       
+        legend.title = element_text(size = 16),
+        plot.title = element_text(size = 22))      
+}
+
+myPalette <- colorRampPalette(brewer.pal(9, "YlOrRd"))
+
+# Replace "..." with your code
+ggplot() +
+  geom_sf(data = zippyPA, aes(fill = pop), lwd = 0) +
+   my_theme() + 
+    ggtitle("Population by Zip Code") +
+  scale_fill_gradientn(name = "Number", colours = myPalette(100),
+                       limit = range(prev_min, prev_max)) 
+```
+
